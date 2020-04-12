@@ -1,3 +1,6 @@
+#mysql database files
+db/data/*
+
 ### VisualStudioCode ###
 .vscode/*
 !.vscode/settings.json
