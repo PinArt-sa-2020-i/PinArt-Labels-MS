@@ -43,9 +43,9 @@ ENGINE = InnoDB;
 DROP TABLE IF EXISTS `labels`.`Label` ;
 
 CREATE TABLE IF NOT EXISTS `labels`.`Label` (
-  `idLabel` INT NOT NULL,
+  `idLabel` INT NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(45) NULL,
-  `createdAt` DATE NULL,
+  `created_on` DATETIME NOT NULL DEFAULT NOW(),
   `description` VARCHAR(45) NULL,
   PRIMARY KEY (`idLabel`))
 ENGINE = InnoDB;
@@ -57,12 +57,10 @@ ENGINE = InnoDB;
 DROP TABLE IF EXISTS `labels`.`Label_relation` ;
 
 CREATE TABLE IF NOT EXISTS `labels`.`Label_relation` (
-  `idLabel_relation` INT NOT NULL,
+  `idLabel_relation` INT NOT NULL AUTO_INCREMENT,
   `Label_id1` INT NOT NULL,
   `Label_idLabel` INT NOT NULL,
   PRIMARY KEY (`idLabel_relation`, `Label_id1`, `Label_idLabel`),
-  INDEX `fk_Label_relation_Label_idx` (`Label_id1` ASC) VISIBLE,
-  INDEX `fk_Label_relation_Label1_idx` (`Label_idLabel` ASC) VISIBLE,
   CONSTRAINT `fk_Label_relation_Label`
     FOREIGN KEY (`Label_id1`)
     REFERENCES `labels`.`Label` (`idLabel`)
@@ -75,6 +73,10 @@ CREATE TABLE IF NOT EXISTS `labels`.`Label_relation` (
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
+CREATE INDEX `fk_Label_relation_Label_idx` ON `labels`.`Label_relation` (`Label_id1` ASC) VISIBLE;
+
+CREATE INDEX `fk_Label_relation_Label1_idx` ON `labels`.`Label_relation` (`Label_idLabel` ASC) VISIBLE;
+
 
 -- -----------------------------------------------------
 -- Table `labels`.`Board_Label`
@@ -82,13 +84,11 @@ ENGINE = InnoDB;
 DROP TABLE IF EXISTS `labels`.`Board_Label` ;
 
 CREATE TABLE IF NOT EXISTS `labels`.`Board_Label` (
-  `idBoard_Label` INT NOT NULL,
-  `createdAt` DATE NULL,
+  `idBoard_Label` INT NOT NULL AUTO_INCREMENT,
+  `created_on` DATETIME NOT NULL DEFAULT NOW(),
   `Label_id` INT NOT NULL,
   `Board_id` INT NOT NULL,
   PRIMARY KEY (`idBoard_Label`, `Label_id`, `Board_id`),
-  INDEX `fk_Board_Label_Label1_idx` (`Label_id` ASC) VISIBLE,
-  INDEX `fk_Board_Label_Board1_idx` (`Board_id` ASC) VISIBLE,
   CONSTRAINT `fk_Board_Label_Label1`
     FOREIGN KEY (`Label_id`)
     REFERENCES `labels`.`Label` (`idLabel`)
@@ -101,6 +101,10 @@ CREATE TABLE IF NOT EXISTS `labels`.`Board_Label` (
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
+CREATE INDEX `fk_Board_Label_Label1_idx` ON `labels`.`Board_Label` (`Label_id` ASC) VISIBLE;
+
+CREATE INDEX `fk_Board_Label_Board1_idx` ON `labels`.`Board_Label` (`Board_id` ASC) VISIBLE;
+
 
 -- -----------------------------------------------------
 -- Table `labels`.`Label_User`
@@ -108,13 +112,11 @@ ENGINE = InnoDB;
 DROP TABLE IF EXISTS `labels`.`Label_User` ;
 
 CREATE TABLE IF NOT EXISTS `labels`.`Label_User` (
-  `idLabel_User` INT NOT NULL,
-  `createdAt` DATE NULL,
+  `idLabel_User` INT NOT NULL AUTO_INCREMENT,
+  `created_on` DATETIME NOT NULL DEFAULT NOW(),
   `User_idUser` INT NOT NULL,
   `Label_idLabel` INT NOT NULL,
   PRIMARY KEY (`idLabel_User`, `User_idUser`, `Label_idLabel`),
-  INDEX `fk_Label_User_User1_idx` (`User_idUser` ASC) VISIBLE,
-  INDEX `fk_Label_User_Label1_idx` (`Label_idLabel` ASC) VISIBLE,
   CONSTRAINT `fk_Label_User_User1`
     FOREIGN KEY (`User_idUser`)
     REFERENCES `labels`.`User` (`idUser`)
@@ -127,7 +129,21 @@ CREATE TABLE IF NOT EXISTS `labels`.`Label_User` (
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
+CREATE INDEX `fk_Label_User_User1_idx` ON `labels`.`Label_User` (`User_idUser` ASC) VISIBLE;
+
+CREATE INDEX `fk_Label_User_Label1_idx` ON `labels`.`Label_User` (`Label_idLabel` ASC) VISIBLE;
+
 
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
+
+-- -----------------------------------------------------
+-- Data for table `labels`.`Label`
+-- -----------------------------------------------------
+START TRANSACTION;
+USE `labels`;
+INSERT INTO `labels`.`Label` (`idLabel`, `name`, `created_on`, `description`) VALUES (DEFAULT, 'carros', DEFAULT, 'los carros ');
+
+COMMIT;
+

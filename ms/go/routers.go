@@ -44,7 +44,7 @@ func NewRouter() *mux.Router {
 }
 
 func Index(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Hello World!")
+	fmt.Fprintf(w, "Welcome to the Labels microservice. Explore the other routes")
 }
 
 var routes = Routes{
