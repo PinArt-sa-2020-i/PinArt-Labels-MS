@@ -1,0 +1,19 @@
+version: '3'
+services:
+    pinart-labels-ms:
+        build: ./ms
+        ports:
+            - "8080:8080" 
+    pinart-labels-db:
+        image: mysql
+        command: --default-authentication-plugin=mysql_native_password
+        restart: always
+        environment:
+            MYSQL_ROOT_PASSWORD: pin123456
+            MYSQL_DATABASE: labels
+            MYSQL_USER: labelms
+            MYSQL_PASSWORD: 2020i
+        ports:
+            - 3307:3306
+        volumes: 
+            - ./db/data:/var/lib/mysql
