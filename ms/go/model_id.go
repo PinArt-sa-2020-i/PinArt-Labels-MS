@@ -10,4 +10,5 @@
 package swagger
 
 type Id struct {
+	Id int64 `json:"id,omitempty"`
 }
