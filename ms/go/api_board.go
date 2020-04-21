@@ -15,25 +15,69 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
-func AddBoardLabel(w http.ResponseWriter, r *http.Request) {
+func DeleteBoardLabel(w http.ResponseWriter, r *http.Request) {
+	// db := dbConn()
+	// idBoard, val := getCode(r, 0)
+	// fmt.Println(val)
+
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusAccepted)
 }
 
-func GetLabelBoard(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.WriteHeader(http.StatusOK)
-	code, val := getCode(r, 0)
+func AddBoardLabel(w http.ResponseWriter, r *http.Request) {
+	/* db := dbConn()
+	// get the id
+	idBoard, val := getCode(r, 0)
 	fmt.Println(val)
-	var id Id
-	id.Id = int64(code)
-	js, err := json.Marshal(id)
+	var board Board
+	// get the body
+	body, err := ioutil.ReadAll(r.Body)
+	defer r.Body.Close()
+	if err != nil {
+		log.Printf("Error reading body: %v", err)
+		http.Error(w, "can't read body", http.StatusBadRequest)
+		return
+	}
+	fmt.Printf("%s", body)
+	var labels []int64
+	err = json.Unmarshal(body, &labels)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+	// insert and get labels
+
+	// return struct board
+	js, err := json.Marshal(board)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusAccepted)
+	w.Write(js) */
+}
+
+func GetLabelBoard(w http.ResponseWriter, r *http.Request) {
+	db := dbConn()
+	code, val := getCode(r, 0)
+	fmt.Println(val)
+	var id Id
+	id.Id = int64(code)
+	var board Board
+	board.Id = id.Id
+	board.RelatedLabels = getBoardRelatedLabels(id.Id, db, w, r)
+	js, err := json.Marshal(board)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
 	w.Write(js)
 }
 

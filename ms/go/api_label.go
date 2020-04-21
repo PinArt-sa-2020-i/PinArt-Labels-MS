@@ -122,13 +122,12 @@ func GetLabel(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		var labelList []Label
 		labelList = GetAllLabels(db, w, r)
-		js, err = json.Marshal(labelList)
 		fmt.Println(labelList)
+		js, err = json.Marshal(labelList)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		return
 	} else {
 		// gets one label from db
 		label := GetLabelFromDB(db, id, w, r)

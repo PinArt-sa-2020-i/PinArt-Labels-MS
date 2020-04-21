@@ -14,6 +14,48 @@ import (
 	"net/http"
 )
 
+func getBoardRelatedLabels(idBoard int64, db *sql.DB, w http.ResponseWriter, r *http.Request) []Label {
+	labelList := make([]Label, 0)
+	// gets the related labels id
+	results, err := db.Query("SELECT Label_id FROM Board_Label WHERE Board_id = ?", idBoard)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return labelList
+	}
+	for results.Next() {
+		var id int64
+		err = results.Scan(&id)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return labelList
+		}
+		labelList = append(labelList, GetLabelFromDB(db, int(id), w, r))
+	}
+
+	return labelList
+}
+
+func getUserRelatedLabels(idUser int64, db *sql.DB, w http.ResponseWriter, r *http.Request) []Label {
+	labelList := make([]Label, 0)
+	// gets the related labels id
+	results, err := db.Query("SELECT Label_idLabel FROM Label_User WHERE User_idUser = ?", idUser)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return labelList
+	}
+	for results.Next() {
+		var id int64
+		err = results.Scan(&id)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return labelList
+		}
+		labelList = append(labelList, GetLabelFromDB(db, int(id), w, r))
+	}
+
+	return labelList
+}
+
 func GetAllLabels(db *sql.DB, w http.ResponseWriter, r *http.Request) []Label {
 	labelList := make([]Label, 0)
 	results, err := db.Query("SELECT idLabel FROM Label")
@@ -102,6 +144,34 @@ func unlinkLabel(id1 int64, id2 int64, db *sql.DB, w http.ResponseWriter) {
 		return
 	}
 	res, err := insForm.Exec(id1, id2, id2, id1)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+	fmt.Println(res)
+}
+
+func linkBoard(idBoard int64, idLabel int64, db *sql.DB, w http.ResponseWriter) {
+	insForm, err := db.Prepare("INSERT INTO Board_Label(Label_id, Board_id) VALUES(?,?)")
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+	res, err := insForm.Exec(idLabel, idBoard)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+	fmt.Println(res)
+}
+
+func unlinkBoard(idBoard int64, idLabel int64, db *sql.DB, w http.ResponseWriter) {
+	insForm, err := db.Prepare("DELETE FROM Board_Label WHERE (Label_id = ? AND Board_id = ?)")
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+	res, err := insForm.Exec(idLabel, idBoard)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
