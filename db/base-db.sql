@@ -64,12 +64,12 @@ CREATE TABLE IF NOT EXISTS `labels`.`Label_relation` (
   CONSTRAINT `fk_Label_relation_Label`
     FOREIGN KEY (`Label_id1`)
     REFERENCES `labels`.`Label` (`idLabel`)
-    ON DELETE NO ACTION
+    ON DELETE CASCADE
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_Label_relation_Label1`
     FOREIGN KEY (`Label_idLabel`)
     REFERENCES `labels`.`Label` (`idLabel`)
-    ON DELETE NO ACTION
+    ON DELETE CASCADE
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
@@ -92,12 +92,12 @@ CREATE TABLE IF NOT EXISTS `labels`.`Board_Label` (
   CONSTRAINT `fk_Board_Label_Label1`
     FOREIGN KEY (`Label_id`)
     REFERENCES `labels`.`Label` (`idLabel`)
-    ON DELETE NO ACTION
+    ON DELETE CASCADE
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_Board_Label_Board1`
     FOREIGN KEY (`Board_id`)
     REFERENCES `labels`.`Board` (`idBoard`)
-    ON DELETE NO ACTION
+    ON DELETE CASCADE
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
@@ -120,12 +120,12 @@ CREATE TABLE IF NOT EXISTS `labels`.`Label_User` (
   CONSTRAINT `fk_Label_User_User1`
     FOREIGN KEY (`User_idUser`)
     REFERENCES `labels`.`User` (`idUser`)
-    ON DELETE NO ACTION
+    ON DELETE CASCADE
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_Label_User_Label1`
     FOREIGN KEY (`Label_idLabel`)
     REFERENCES `labels`.`Label` (`idLabel`)
-    ON DELETE NO ACTION
+    ON DELETE CASCADE
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
@@ -143,7 +143,13 @@ SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
 -- -----------------------------------------------------
 START TRANSACTION;
 USE `labels`;
-INSERT INTO `labels`.`Label` (`idLabel`, `name`, `created_on`, `description`) VALUES (DEFAULT, 'carros', DEFAULT, 'los carros ');
+INSERT INTO `labels`.`Label` (`idLabel`, `name`, `created_on`, `description`) VALUES (, 'carros', DEFAULT, 'los carros ');
+INSERT INTO `labels`.`Label` (`idLabel`, `name`, `created_on`, `description`) VALUES (DEFAULT, 'Paisajes', DEFAULT, 'vistas fotograficas');
+INSERT INTO `labels`.`Label` (`idLabel`, `name`, `created_on`, `description`) VALUES (DEFAULT, 'Perros', DEFAULT, 'Perros');
+INSERT INTO `labels`.`Label` (`idLabel`, `name`, `created_on`, `description`) VALUES (DEFAULT, 'Gatos', DEFAULT, 'Gatos');
+INSERT INTO `labels`.`Label` (`idLabel`, `name`, `created_on`, `description`) VALUES (DEFAULT, 'Tatuajes M', DEFAULT, 'Tatuajes masculinos');
+INSERT INTO `labels`.`Label` (`idLabel`, `name`, `created_on`, `description`) VALUES (DEFAULT, 'Herramientas', DEFAULT, 'Herramientas de contruccion');
+INSERT INTO `labels`.`Label` (`idLabel`, `name`, `created_on`, `description`) VALUES (DEFAULT, 'Computadores', DEFAULT, 'Equipos gamer');
 
 COMMIT;
 

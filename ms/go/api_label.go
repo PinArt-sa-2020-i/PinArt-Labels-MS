@@ -15,6 +15,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strconv"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -23,7 +24,7 @@ func dbConn() (db *sql.DB) {
 	dbDriver := "mysql"
 	dbUser := "labelms"
 	dbPass := "2020i"
-	dbName := "tcp(pinart-labels-db:3306)/labels" //"tcp(127.0.0.1:3307)/labels" //"tcp(pinart-labels-db:3306)/labels" //
+	dbName := "tcp(pinart-labels-db:3306)/labels" //"tcp(127.0.0.1:3306)/labels" //
 	db, err := sql.Open(dbDriver, dbUser+":"+dbPass+"@"+dbName)
 	if err != nil {
 		log.Panic(err.Error())
@@ -67,18 +68,9 @@ func AddLabel(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), 500)
 		return
 	}
+	// write all the related labels
 	for _, relatedID := range theLabel.RelatedLabels {
-		insForm, err := db.Prepare("INSERT INTO Label_relation(Label_id1, label_idLabel) VALUES(?,?)")
-		if err != nil {
-			http.Error(w, err.Error(), 500)
-			return
-		}
-		res, err := insForm.Exec(id.Id, relatedID)
-		if err != nil {
-			http.Error(w, err.Error(), 500)
-			return
-		}
-		fmt.Println(res)
+		linkLabel(id.Id, relatedID, db, w)
 	}
 	fmt.Println(result)
 	w.WriteHeader(http.StatusCreated)
@@ -111,38 +103,14 @@ func DeleteLabel(w http.ResponseWriter, r *http.Request) {
 func GetLabel(w http.ResponseWriter, r *http.Request) {
 
 	db := dbConn()
-	id := r.URL.Query().Get("id")
-	results, err := db.Query("SELECT name, description FROM Label WHERE idLabel=?", id)
-
+	id, err := strconv.Atoi(r.URL.Query().Get("id"))
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	var lab Label
-	results.Next()
-	err = results.Scan(&lab.Name, &lab.Description)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	results, err = db.Query("SELECT Label_id1 as id from Label_relation where Label_idLabel =? union select Label_idLabel as id from Label_relation where Label_id1 = ?", id, id)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	list := make([]int64, 1)
-	for results.Next() {
-		var val int64
-		err = results.Scan(&val)
-		list = append(list, val)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-	}
-	lab.RelatedLabels = list
-	js, err := json.Marshal(lab)
+	// gets one label from db
+	label := GetLabelFromDB(db, id, w, r)
+	js, err := json.Marshal(label)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -172,7 +140,7 @@ func UpdateLabel(w http.ResponseWriter, r *http.Request) {
 		panic(err.Error())
 	}
 	update.Exec(theLabel.Name, theLabel.Description, theLabel.Id)
-
+	updateLabelRelations(theLabel, db, w, r)
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusAccepted)
 }

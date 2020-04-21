@@ -56,6 +56,20 @@ var routes = Routes{
 	},
 
 	Route{
+		"AddBoardLabel",
+		strings.ToUpper("Put"),
+		"/label/board/{id}",
+		AddBoardLabel,
+	},
+
+	Route{
+		"GetLabelBoard",
+		strings.ToUpper("Get"),
+		"/label/board/{id}",
+		GetLabelBoard,
+	},
+
+	Route{
 		"AddLabel",
 		strings.ToUpper("Put"),
 		"/label",
