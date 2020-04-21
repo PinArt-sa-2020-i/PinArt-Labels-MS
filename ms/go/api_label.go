@@ -24,7 +24,7 @@ func dbConn() (db *sql.DB) {
 	dbDriver := "mysql"
 	dbUser := "labelms"
 	dbPass := "2020i"
-	dbName := "tcp(pinart-labels-db:3306)/labels" //"tcp(127.0.0.1:3306)/labels" //
+	dbName := "tcp(127.0.0.1:3306)/labels" //"tcp(pinart-labels-db:3306)/labels"  //
 	db, err := sql.Open(dbDriver, dbUser+":"+dbPass+"@"+dbName)
 	if err != nil {
 		log.Panic(err.Error())
@@ -60,6 +60,7 @@ func AddLabel(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), 500)
 		return
 	}
+	fmt.Println(result)
 	q, err := db.Query("SELECT LAST_INSERT_ID()")
 	var id Id
 	q.Next()
@@ -72,8 +73,15 @@ func AddLabel(w http.ResponseWriter, r *http.Request) {
 	for _, relatedID := range theLabel.RelatedLabels {
 		linkLabel(id.Id, relatedID, db, w)
 	}
-	fmt.Println(result)
+	theLabel.Id = id.Id
+	js, err := json.Marshal(theLabel)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusCreated)
+	w.Write(js)
 }
 
 func DeleteLabel(w http.ResponseWriter, r *http.Request) {
@@ -96,25 +104,41 @@ func DeleteLabel(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "can't delete label", http.StatusInternalServerError)
 	}
 	delete.Exec(theLabel.Id)
+	js, err := json.Marshal(theLabel)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusAccepted)
+	w.Write(js)
 }
 
 func GetLabel(w http.ResponseWriter, r *http.Request) {
 
 	db := dbConn()
+	var js []byte
 	id, err := strconv.Atoi(r.URL.Query().Get("id"))
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		var labelList []Label
+		labelList = GetAllLabels(db, w, r)
+		js, err = json.Marshal(labelList)
+		fmt.Println(labelList)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 		return
+	} else {
+		// gets one label from db
+		label := GetLabelFromDB(db, id, w, r)
+		js, err = json.Marshal(label)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 	}
-	// gets one label from db
-	label := GetLabelFromDB(db, id, w, r)
-	js, err := json.Marshal(label)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 	w.Write(js)
@@ -141,8 +165,14 @@ func UpdateLabel(w http.ResponseWriter, r *http.Request) {
 	}
 	update.Exec(theLabel.Name, theLabel.Description, theLabel.Id)
 	updateLabelRelations(theLabel, db, w, r)
+	js, err := json.Marshal(theLabel)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusAccepted)
+	w.Write(js)
 }
 
 func checkCount(rows *sql.Rows) (count int) {

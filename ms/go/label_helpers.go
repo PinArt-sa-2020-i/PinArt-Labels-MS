@@ -14,6 +14,25 @@ import (
 	"net/http"
 )
 
+func GetAllLabels(db *sql.DB, w http.ResponseWriter, r *http.Request) []Label {
+	labelList := make([]Label, 0)
+	results, err := db.Query("SELECT idLabel FROM Label")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return labelList
+	}
+	for results.Next() {
+		var id int64
+		err = results.Scan(&id)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return labelList
+		}
+		labelList = append(labelList, GetLabelFromDB(db, int(id), w, r))
+	}
+	return labelList
+}
+
 func GetLabelFromDB(db *sql.DB, id int, w http.ResponseWriter, r *http.Request) Label {
 	var lab Label
 	// Label Properties
@@ -45,6 +64,7 @@ func GetLabelFromDB(db *sql.DB, id int, w http.ResponseWriter, r *http.Request) 
 			return lab
 		}
 	}
+	lab.Id = int64(id)
 	lab.RelatedLabels = list
 	return lab
 }
