@@ -9,6 +9,8 @@
 
 package swagger
 
-type LabelsInput struct {
-	RelatedLabels []int `json:"relatedLabels,omitempty"`
+type User struct {
+	Id int64 `json:"id,omitempty"`
+
+	RelatedLabels []Label `json:"relatedLabels,omitempty"`
 }
