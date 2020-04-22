@@ -24,7 +24,7 @@ func dbConn() (db *sql.DB) {
 	dbDriver := "mysql"
 	dbUser := "labelms"
 	dbPass := "2020i"
-	dbName := "tcp(127.0.0.1:3306)/labels" // "tcp(pinart-labels-db:3306)/labels" // //
+	dbName := "tcp(pinart-labels-db:3306)/labels" // "tcp(127.0.0.1:3306)/labels" // //
 	db, err := sql.Open(dbDriver, dbUser+":"+dbPass+"@"+dbName)
 	if err != nil {
 		log.Panic(err.Error())
