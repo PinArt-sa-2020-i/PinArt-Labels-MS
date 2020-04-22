@@ -12,6 +12,8 @@ package swagger
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -29,11 +31,12 @@ func DeleteBoardLabel(w http.ResponseWriter, r *http.Request) {
 }
 
 func AddBoardLabel(w http.ResponseWriter, r *http.Request) {
-	/* db := dbConn()
+	db := dbConn()
+	var board Board
 	// get the id
 	idBoard, val := getCode(r, 0)
 	fmt.Println(val)
-	var board Board
+	board.Id = int64(idBoard)
 	// get the body
 	body, err := ioutil.ReadAll(r.Body)
 	defer r.Body.Close()
@@ -43,15 +46,16 @@ func AddBoardLabel(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Printf("%s", body)
-	var labels []int64
+	var labels LabelsInput
 	err = json.Unmarshal(body, &labels)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
 	}
 	// insert and get labels
-
+	linkBoard(board.Id, labels.RelatedLabels, db, w)
 	// return struct board
+	board.RelatedLabels = getLabels(labels.RelatedLabels, db, w)
 	js, err := json.Marshal(board)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -59,7 +63,7 @@ func AddBoardLabel(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusAccepted)
-	w.Write(js) */
+	w.Write(js)
 }
 
 func GetLabelBoard(w http.ResponseWriter, r *http.Request) {
