@@ -1,136 +1,232 @@
----
-swagger: "2.0"
-info:
-  description: "A labels microservice for PinArt system."
-  version: "1.0.0"
-  title: "PinArt Labels MS"
-schemes:
-- "http"
 consumes:
-- "application/io.goswagger.examples.todo-list.v1+json"
-produces:
-- "application/io.goswagger.examples.todo-list.v1+json"
-paths:
-  /label:
-    get:
-      tags:
-      - "label"
-      description: "Returns the available label"
-      operationId: "getLabel"
-      parameters:
-      - name: "id"
-        in: "query"
-        required: true
-        type: "integer"
-        format: "int64"
-        x-exportParamName: "Id"
-      - name: "since"
-        in: "query"
-        required: false
-        type: "integer"
-        format: "int64"
-        x-exportParamName: "Since"
-        x-optionalDataType: "Int64"
-      - name: "limit"
-        in: "query"
-        required: false
-        type: "integer"
-        default: 20
-        format: "int32"
-        x-exportParamName: "Limit"
-        x-optionalDataType: "Int32"
-      responses:
-        "200":
-          description: "label returned."
-        default:
-          description: "generic error response"
+  - application/io.goswagger.examples.todo-list.v1+json
+  host: 127.0.0.1:8080
+  basePath: /
+  info:
+    description: A labels microservice for PinArt system.
+    title: PinArt Labels MS
+    version: 1.0.0
+  paths:
+    /label/board/{id}:
+      get:
+        tags:
+          - Board
+        operationId: getLabelBoard
+        description: Returns the available labels related with the board specified.
+        responses:
+          200:
+            description: labels returned.
+          default:
+            description: generic error response
+            schema:
+              $ref: '#/definitions/error'
+        parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+          format: int64
+      put:
+        tags:
+          - Board
+        operationId: addBoardLabel
+        description: Adds a set of labels to specified board.
+        responses:
+          202:
+            description: Board succesfully updated.
+          default:
+            description: generic error response
+            schema:
+              $ref: '#/definitions/error'
+        parameters:
+        - name: id
+          in: path
+          description: The id of the board to be updated
+          required: true
+          type: integer
+        - name: relatedLabels
+          in: body
+          required: true
+          description: User Object
           schema:
-            $ref: "#/definitions/error"
-    post:
-      tags:
-      - "label"
-      description: "Updates the specified label."
-      operationId: "updateLabel"
-      parameters:
-      - in: "body"
-        name: "label"
-        required: false
-        schema:
-          $ref: "#/definitions/label"
-        x-exportParamName: "Label"
-      responses:
-        "202":
-          description: "Label succesfully updated."
-        default:
-          description: "generic error response"
+              $ref: '#/definitions/ids'
+              
+    /label/user/{id}:
+      get:
+        tags:
+          - User
+        operationId: getLabelUser
+        description: Returns the available labels related with the user specified.
+        responses:
+          200:
+            description: labels returned.
+          default:
+            description: generic error response
+            schema:
+              $ref: '#/definitions/error'
+        parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+          format: int64
+      put:
+        tags:
+          - User
+        operationId: addUserLabel
+        description: Adds a set of labels to specified board.
+        responses:
+          202:
+            description: User succesfully updated.
+          default:
+            description: generic error response
+            schema:
+              $ref: '#/definitions/error'
+        parameters:
+        - name: id
+          in: path
+          description: The id of the board to be updated
+          required: true
+          type: integer
+        - name: relatedLabels
+          in: body
+          required: true
+          description: User Object
           schema:
-            $ref: "#/definitions/error"
-    put:
-      tags:
-      - "label"
-      description: "Creates a label."
-      operationId: "addLabel"
-      parameters:
-      - in: "body"
-        name: "label"
-        required: false
-        schema:
-          $ref: "#/definitions/label"
-        x-exportParamName: "Label"
-      responses:
-        "201":
-          description: "Label succesfully created"
-        default:
-          description: "generic error response"
+              $ref: '#/definitions/ids'
+  
+    /label:
+      get:
+        tags:
+          - Label
+        operationId: getLabel
+        description: Returns the available label, if no id specified it returns all
+        responses:
+          200:
+            description: label returned.
+          default:
+            description: generic error response
+            schema:
+              $ref: '#/definitions/error'
+        parameters:
+        - name: id
+          in: query
+          type: integer
+          format: int64
+        - name: since
+          in: query
+          type: integer
+          format: int64
+        - name: limit
+          in: query
+          type: integer
+          format: int32
+          default: 20
+      post:
+        tags:
+          - Label
+        operationId: updateLabel
+        description: Updates the specified label.
+        responses:
+          202:
+            description: Label succesfully updated.
+          default:
+            description: generic error response
+            schema:
+              $ref: '#/definitions/error'
+        parameters:
+        - name: label
+          in: body
           schema:
-            $ref: "#/definitions/error"
-    delete:
-      tags:
-      - "label"
-      description: "Deletes a label."
-      operationId: "deleteLabel"
-      parameters:
-      - in: "body"
-        name: "id"
-        required: true
-        schema:
-          $ref: "#/definitions/id"
-        x-exportParamName: "Id"
-      responses:
-        "202":
-          description: "Label succesfully deleted"
-        default:
-          description: "generic error response"
+            $ref: '#/definitions/labelUpdate'
+      put:
+        tags:
+          - Label
+        operationId: addLabel
+        description: Creates a label.
+        responses:
+          201:
+            description: Label succesfully created
+          default:
+            description: generic error response
+            schema:
+              $ref: '#/definitions/error'
+        parameters:
+        - name: label
+          in: body
           schema:
-            $ref: "#/definitions/error"
-definitions:
-  id:
-    type: "integer"
-    format: "int64"
-  label:
-    type: "object"
-    properties:
-      id:
-        type: "integer"
-        format: "int64"
-      name:
-        type: "string"
-        minLength: 1
-      description:
-        type: "string"
-        minLength: 1
-      relatedLabels:
-        type: "array"
-        items:
-          type: "integer"
-          format: "int64"
-  error:
-    type: "object"
-    required:
-    - "message"
-    properties:
-      code:
-        type: "integer"
-        format: "int64"
-      message:
-        type: "string"
+            $ref: '#/definitions/label'
+      delete:
+        tags:
+          - Label
+        operationId: deleteLabel
+        description: Deletes a label.
+        responses:
+          202:
+            description: Label succesfully deleted
+          default:
+            description: generic error response
+            schema:
+              $ref: '#/definitions/error'
+        parameters:
+        - name: id
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/id'
+          
+  produces:
+  - application/io.goswagger.examples.todo-list.v1+json
+  definitions:
+    labelUpdate:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+          minLength: 1
+        description:
+          type: string
+          minLength: 1
+        relatedLabels:
+          type: array
+          items:
+            type: integer
+            format: int64
+    ids:
+      type: array
+      items:
+        type: integer
+        format: int64
+    id:
+      type: integer
+      format: int64
+    label:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        description:
+          type: string
+          minLength: 1
+        relatedLabels:
+          type: array
+          items:
+            type: integer
+            format: int64
+    error:
+      type: object
+      required:
+        - message
+      properties:
+        code:
+          type: integer
+          format: int64
+        message:
+          type: string
+  schemes:
+  - http
+  swagger: "2.0"

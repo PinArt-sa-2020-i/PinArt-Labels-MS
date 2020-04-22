@@ -100,3 +100,19 @@ func getCode(r *http.Request, defaultCode int) (int, string) {
 		return defaultCode, ""
 	}
 }
+
+func getCodeLabel(r *http.Request, defaultCode int) (int, string) {
+	p := strings.Split(r.URL.Path, "/")
+	if len(p) == 1 {
+		return defaultCode, p[0]
+	} else if len(p) > 2 {
+		code, err := strconv.Atoi(p[2])
+		if err == nil {
+			return code, p[2]
+		} else {
+			return defaultCode, p[2]
+		}
+	} else {
+		return defaultCode, ""
+	}
+}

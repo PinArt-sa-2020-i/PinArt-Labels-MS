@@ -12,6 +12,8 @@ package swagger
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"log"
 	"net/http"
 )
 
@@ -21,8 +23,39 @@ func DeleteUserLabel(w http.ResponseWriter, r *http.Request) {
 }
 
 func AddUserLabel(w http.ResponseWriter, r *http.Request) {
+	db := dbConn()
+	var user User
+	// get the id
+	idUser, val := getCode(r, 0)
+	fmt.Println(val)
+	user.Id = int64(idUser)
+	// get the body
+	body, err := ioutil.ReadAll(r.Body)
+	defer r.Body.Close()
+	if err != nil {
+		log.Printf("Error reading body: %v", err)
+		http.Error(w, "can't read body", http.StatusBadRequest)
+		return
+	}
+	fmt.Printf("%s", body)
+	var labels LabelsInput
+	err = json.Unmarshal(body, &labels)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+	// insert and get labels
+	linkUser(user.Id, labels.RelatedLabels, db, w)
+	// return struct board
+	user.RelatedLabels = getLabels(labels.RelatedLabels, db, w)
+	js, err := json.Marshal(user)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusAccepted)
+	w.Write(js)
 }
 
 func GetLabelUser(w http.ResponseWriter, r *http.Request) {

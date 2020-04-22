@@ -175,6 +175,22 @@ func linkBoard(idBoard int64, idLabels []int, db *sql.DB, w http.ResponseWriter)
 	}
 }
 
+func linkUser(idUser int64, idLabels []int, db *sql.DB, w http.ResponseWriter) {
+	for _, label := range idLabels {
+		insForm, err := db.Prepare("INSERT INTO Label_User(User_idUser, Label_idLabel) VALUES(?,?)")
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+		res, err := insForm.Exec(idUser, label)
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+		fmt.Println(res)
+	}
+}
+
 func unlinkBoard(idBoard int64, idLabel int64, db *sql.DB, w http.ResponseWriter) {
 	insForm, err := db.Prepare("DELETE FROM Board_Label WHERE (Label_id = ? AND Board_id = ?)")
 	if err != nil {

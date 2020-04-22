@@ -24,7 +24,7 @@ func dbConn() (db *sql.DB) {
 	dbDriver := "mysql"
 	dbUser := "labelms"
 	dbPass := "2020i"
-	dbName := "tcp(pinart-labels-db:3306)/labels" //"tcp(127.0.0.1:3306)/labels" //  //
+	dbName := "tcp(127.0.0.1:3306)/labels" // "tcp(pinart-labels-db:3306)/labels" // //
 	db, err := sql.Open(dbDriver, dbUser+":"+dbPass+"@"+dbName)
 	if err != nil {
 		log.Panic(err.Error())
@@ -88,16 +88,15 @@ func DeleteLabel(w http.ResponseWriter, r *http.Request) {
 
 	db := dbConn()
 
-	body, err := ioutil.ReadAll(r.Body)
-	defer r.Body.Close()
-	if err != nil {
-		log.Printf("Error reading body: %v", err)
-		http.Error(w, "can't read body", http.StatusBadRequest)
+	idlabel, val := getCodeLabel(r, 0)
+	fmt.Println(val)
+	if idlabel == 0 {
+		log.Printf("Error reading param: %v", idlabel)
+		http.Error(w, "can't read params", http.StatusBadRequest)
 		return
 	}
-	fmt.Printf("%s", body)
 	var theLabel Label
-	err = json.Unmarshal(body, &theLabel)
+	theLabel.Id = int64(idlabel)
 
 	delete, err := db.Prepare("DELETE FROM Label WHERE idLabel=?")
 	if err != nil {
