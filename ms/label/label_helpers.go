@@ -6,13 +6,27 @@
  * API version: 1.0.0
  */
 
-package swagger
+package label
 
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"net/http"
 )
+
+func dbConn() (db *sql.DB) {
+	dbDriver := "mysql"
+	dbUser := "labelms"
+	dbPass := "2020i"
+	dbName := "tcp(127.0.0.1:3306)/labels" //"tcp(pinart-labels-db:3306)/labels" //  //
+	db, err := sql.Open(dbDriver, dbUser+":"+dbPass+"@"+dbName)
+	if err != nil {
+		log.Panic(err.Error())
+		panic(err.Error())
+	}
+	return db
+}
 
 func getBoardRelatedLabels(idBoard int64, db *sql.DB, w http.ResponseWriter, r *http.Request) []Label {
 	labelList := make([]Label, 0)

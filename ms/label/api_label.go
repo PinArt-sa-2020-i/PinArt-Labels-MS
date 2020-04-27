@@ -6,10 +6,9 @@
  * API version: 1.0.0
  */
 
-package swagger
+package label
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -19,19 +18,6 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 )
-
-func dbConn() (db *sql.DB) {
-	dbDriver := "mysql"
-	dbUser := "labelms"
-	dbPass := "2020i"
-	dbName := "tcp(pinart-labels-db:3306)/labels" // "tcp(127.0.0.1:3306)/labels" // //
-	db, err := sql.Open(dbDriver, dbUser+":"+dbPass+"@"+dbName)
-	if err != nil {
-		log.Panic(err.Error())
-		panic(err.Error())
-	}
-	return db
-}
 
 func AddLabel(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -173,15 +159,24 @@ func UpdateLabel(w http.ResponseWriter, r *http.Request) {
 	w.Write(js)
 }
 
-func checkCount(rows *sql.Rows) (count int) {
-	for rows.Next() {
-		err := rows.Scan(&count)
-		checkErr(err)
+func SearchLabel(w http.ResponseWriter, r *http.Request) {
+	var response []byte
+	var labelList []Label
+	// get the fragment
+	keys, ok := r.URL.Query()["fragment"]
+	if !ok || len(keys[0]) < 1 {
+		http.Error(w, "No fragment value given", http.StatusInternalServerError)
+		return
 	}
-	return count
-}
-func checkErr(err error) {
+	fragment := keys[0]
+	// calls handler
+	labelList = labelSearch(fragment, w)
+	response, err := json.Marshal(labelList)
 	if err != nil {
-		panic(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
+	w.Write(response)
 }
