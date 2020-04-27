@@ -37,6 +37,10 @@ func AddBoardLabel(w http.ResponseWriter, r *http.Request) {
 	idBoard, val := getCode(r, 0)
 	fmt.Println(val)
 	board.Id = int64(idBoard)
+	exist := boardExist(board.Id)
+	if !exist {
+		createBoard(board.Id)
+	}
 	// get the body
 	body, err := ioutil.ReadAll(r.Body)
 	defer r.Body.Close()
@@ -74,6 +78,11 @@ func GetLabelBoard(w http.ResponseWriter, r *http.Request) {
 	id.Id = int64(code)
 	var board Board
 	board.Id = id.Id
+	// check if board exist
+	exist := boardExist(board.Id)
+	if !exist {
+		createBoard(board.Id)
+	}
 	board.RelatedLabels = getBoardRelatedLabels(id.Id, db, w, r)
 	js, err := json.Marshal(board)
 	if err != nil {

@@ -29,6 +29,11 @@ func AddUserLabel(w http.ResponseWriter, r *http.Request) {
 	idUser, val := getCode(r, 0)
 	fmt.Println(val)
 	user.Id = int64(idUser)
+	// checks if the user exist
+	exist := userExist(user.Id)
+	if !exist {
+		createUser(user.Id)
+	}
 	// get the body
 	body, err := ioutil.ReadAll(r.Body)
 	defer r.Body.Close()
@@ -66,6 +71,11 @@ func GetLabelUser(w http.ResponseWriter, r *http.Request) {
 	id.Id = int64(code)
 	var user User
 	user.Id = id.Id
+	// checks if the user exist
+	exist := userExist(id.Id)
+	if !exist {
+		createUser(id.Id)
+	}
 	user.RelatedLabels = getUserRelatedLabels(id.Id, db, w, r)
 	js, err := json.Marshal(user)
 	if err != nil {
