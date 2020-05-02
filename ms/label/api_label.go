@@ -6,31 +6,18 @@
  * API version: 1.0.0
  */
 
-package swagger
+package label
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strconv"
 
 	_ "github.com/go-sql-driver/mysql"
 )
-
-func dbConn() (db *sql.DB) {
-	dbDriver := "mysql"
-	dbUser := "labelms"
-	dbPass := "2020i"
-	dbName := "tcp(pinart-labels-db:3306)/labels" //"tcp(127.0.0.1:3307)/labels" //"tcp(pinart-labels-db:3306)/labels" //
-	db, err := sql.Open(dbDriver, dbUser+":"+dbPass+"@"+dbName)
-	if err != nil {
-		log.Panic(err.Error())
-		panic(err.Error())
-	}
-	return db
-}
 
 func AddLabel(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -59,6 +46,7 @@ func AddLabel(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), 500)
 		return
 	}
+	fmt.Println(result)
 	q, err := db.Query("SELECT LAST_INSERT_ID()")
 	var id Id
 	q.Next()
@@ -67,86 +55,74 @@ func AddLabel(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), 500)
 		return
 	}
+	// write all the related labels
 	for _, relatedID := range theLabel.RelatedLabels {
-		insForm, err := db.Prepare("INSERT INTO Label_relation(Label_id1, label_idLabel) VALUES(?,?)")
-		if err != nil {
-			http.Error(w, err.Error(), 500)
-			return
-		}
-		res, err := insForm.Exec(id.Id, relatedID)
-		if err != nil {
-			http.Error(w, err.Error(), 500)
-			return
-		}
-		fmt.Println(res)
+		linkLabel(id.Id, relatedID, db, w)
 	}
-	fmt.Println(result)
+	theLabel.Id = id.Id
+	js, err := json.Marshal(theLabel)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusCreated)
+	w.Write(js)
 }
 
 func DeleteLabel(w http.ResponseWriter, r *http.Request) {
 
 	db := dbConn()
 
-	body, err := ioutil.ReadAll(r.Body)
-	defer r.Body.Close()
-	if err != nil {
-		log.Printf("Error reading body: %v", err)
-		http.Error(w, "can't read body", http.StatusBadRequest)
+	idlabel, val := getCodeLabel(r, 0)
+	fmt.Println(val)
+	if idlabel == 0 {
+		log.Printf("Error reading param: %v", idlabel)
+		http.Error(w, "can't read params", http.StatusBadRequest)
 		return
 	}
-	fmt.Printf("%s", body)
 	var theLabel Label
-	err = json.Unmarshal(body, &theLabel)
+	theLabel.Id = int64(idlabel)
 
 	delete, err := db.Prepare("DELETE FROM Label WHERE idLabel=?")
 	if err != nil {
 		http.Error(w, "can't delete label", http.StatusInternalServerError)
 	}
 	delete.Exec(theLabel.Id)
+	js, err := json.Marshal(theLabel)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusAccepted)
+	w.Write(js)
 }
 
 func GetLabel(w http.ResponseWriter, r *http.Request) {
 
 	db := dbConn()
-	id := r.URL.Query().Get("id")
-	results, err := db.Query("SELECT name, description FROM Label WHERE idLabel=?", id)
-
+	var js []byte
+	id, err := strconv.Atoi(r.URL.Query().Get("id"))
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	var lab Label
-	results.Next()
-	err = results.Scan(&lab.Name, &lab.Description)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	results, err = db.Query("SELECT Label_id1 as id from Label_relation where Label_idLabel =? union select Label_idLabel as id from Label_relation where Label_id1 = ?", id, id)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	list := make([]int64, 1)
-	for results.Next() {
-		var val int64
-		err = results.Scan(&val)
-		list = append(list, val)
+		var labelList []Label
+		labelList = GetAllLabels(db, w, r)
+		fmt.Println(labelList)
+		js, err = json.Marshal(labelList)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	} else {
+		// gets one label from db
+		label := GetLabelFromDB(db, id, w)
+		js, err = json.Marshal(label)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 	}
-	lab.RelatedLabels = list
-	js, err := json.Marshal(lab)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 	w.Write(js)
@@ -172,20 +148,35 @@ func UpdateLabel(w http.ResponseWriter, r *http.Request) {
 		panic(err.Error())
 	}
 	update.Exec(theLabel.Name, theLabel.Description, theLabel.Id)
-
+	updateLabelRelations(theLabel, db, w, r)
+	js, err := json.Marshal(theLabel)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusAccepted)
+	w.Write(js)
 }
 
-func checkCount(rows *sql.Rows) (count int) {
-	for rows.Next() {
-		err := rows.Scan(&count)
-		checkErr(err)
+func SearchLabel(w http.ResponseWriter, r *http.Request) {
+	var response []byte
+	var labelList []Label
+	// get the fragment
+	keys, ok := r.URL.Query()["fragment"]
+	if !ok || len(keys[0]) < 1 {
+		http.Error(w, "No fragment value given", http.StatusInternalServerError)
+		return
 	}
-	return count
-}
-func checkErr(err error) {
+	fragment := keys[0]
+	// calls handler
+	labelList = labelSearch(fragment, w)
+	response, err := json.Marshal(labelList)
 	if err != nil {
-		panic(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
+	w.Write(response)
 }
