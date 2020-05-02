@@ -21,6 +21,7 @@ func userExist(uid int64) bool {
 			fmt.Println("user exist")
 		}
 	}
+	db.Close()
 	return exist
 }
 
@@ -36,5 +37,6 @@ func createUser(uid int64) bool {
 		created = false
 	}
 	fmt.Println(res)
+	db.Close()
 	return created
 }
