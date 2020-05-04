@@ -25,6 +25,7 @@ func labelSearch(fragment string, w http.ResponseWriter) []Label {
 		}
 		labelList = append(labelList, GetLabelFromDB(db, int(id), w))
 	}
-	db.Close()
+	defer results.Close()
+	defer db.Close()
 	return labelList
 }

@@ -1,6 +1,6 @@
 package label
 
-import "fmt"
+import 	"fmt"
 
 func boardExist(bid int64) bool {
 	db := dbConn()
@@ -18,6 +18,8 @@ func boardExist(bid int64) bool {
 			exist = true
 		}
 	}
+	defer results.Close()
+	defer db.Close()
 	return exist
 }
 
@@ -30,8 +32,10 @@ func createBoard(bid int64) bool {
 	}
 	res, err := insForm.Exec(bid)
 	if err != nil {
-		created = false
+		created = true
 	}
 	fmt.Println(res)
+	defer insForm.Close()
+	defer db.Close()
 	return created
 }

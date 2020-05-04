@@ -95,7 +95,8 @@ func DeleteLabel(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	db.Close()
+	defer delete.Close()
+	defer db.Close()
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusAccepted)
 	w.Write(js)
@@ -124,7 +125,7 @@ func GetLabel(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	db.Close()
+	defer db.Close()
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 	w.Write(js)
@@ -156,7 +157,8 @@ func UpdateLabel(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	db.Close()
+	defer update.Close()
+	defer db.Close()
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusAccepted)
 	w.Write(js)

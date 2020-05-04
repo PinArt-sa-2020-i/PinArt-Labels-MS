@@ -45,7 +45,7 @@ func getBoardRelatedLabels(idBoard int64, db *sql.DB, w http.ResponseWriter, r *
 		}
 		labelList = append(labelList, GetLabelFromDB(db, int(id), w))
 	}
-
+	defer results.Close()
 	return labelList
 }
 
@@ -66,7 +66,7 @@ func getUserRelatedLabels(idUser int64, db *sql.DB, w http.ResponseWriter, r *ht
 		}
 		labelList = append(labelList, GetLabelFromDB(db, int(id), w))
 	}
-
+	defer results.Close()
 	return labelList
 }
 
@@ -86,6 +86,7 @@ func GetAllLabels(db *sql.DB, w http.ResponseWriter, r *http.Request) []Label {
 		}
 		labelList = append(labelList, GetLabelFromDB(db, int(id), w))
 	}
+	defer results.Close()
 	return labelList
 }
 
@@ -120,6 +121,7 @@ func GetLabelFromDB(db *sql.DB, id int, w http.ResponseWriter) Label {
 			return lab
 		}
 	}
+	defer results.Close()
 	lab.Id = int64(id)
 	lab.RelatedLabels = list
 	return lab
@@ -156,6 +158,7 @@ func linkLabel(id1 int64, id2 int64, db *sql.DB, w http.ResponseWriter) {
 		http.Error(w, err.Error(), 500)
 		return
 	}
+	defer insForm.Close()
 	fmt.Println(res)
 }
 
@@ -170,6 +173,7 @@ func unlinkLabel(id1 int64, id2 int64, db *sql.DB, w http.ResponseWriter) {
 		http.Error(w, err.Error(), 500)
 		return
 	}
+	defer insForm.Close()
 	fmt.Println(res)
 }
 
@@ -186,6 +190,7 @@ func linkBoard(idBoard int64, idLabels []int, db *sql.DB, w http.ResponseWriter)
 			return
 		}
 		fmt.Println(res)
+		defer insForm.Close()
 	}
 }
 
@@ -202,6 +207,7 @@ func linkUser(idUser int64, idLabels []int, db *sql.DB, w http.ResponseWriter) {
 			return
 		}
 		fmt.Println(res)
+		defer insForm.Close()
 	}
 }
 
@@ -217,6 +223,7 @@ func unlinkBoard(idBoard int64, idLabel int64, db *sql.DB, w http.ResponseWriter
 		return
 	}
 	fmt.Println(res)
+	defer insForm.Close()
 }
 
 // Set Difference: A - B
