@@ -40,3 +40,15 @@ func createUser(uid int64) bool {
 	db.Close()
 	return created
 }
+
+func deleteUserLabelDB(uid int64, idLabel int64) {
+	db := dbConn()
+	delete, err := db.Prepare("DELETE FROM Label_User WHERE User_idUser=? and Label_idLabel=?")
+	if err != nil {
+		fmt.Println("error ocurred")
+		fmt.Println(err)
+	}
+	delete.Exec(uid,idLabel)
+	defer delete.Close()
+	defer db.Close()
+}
