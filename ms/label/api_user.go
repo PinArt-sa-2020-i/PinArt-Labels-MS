@@ -15,11 +15,39 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 func DeleteUserLabel(w http.ResponseWriter, r *http.Request) {
+	// get the id
+	idUser, val := getCode(r, 0)
+	fmt.Println(val)
+	// get the label id
+	keys, ok := r.URL.Query()["id"]
+	if !ok || len(keys[0]) < 1 {
+		http.Error(w, "no id label value given", http.StatusInternalServerError)
+		return
+	}
+	idlabel, err := strconv.ParseInt(keys[0], 10, 64)
+	if err != nil {
+		http.Error(w, "there was an error on the labelid param", http.StatusInternalServerError)
+		return
+	}
+
+	deleteUserLabelDB(int64(idUser), idlabel)
+
+	// returned object
+	var theLabel Label
+	theLabel.Id = int64(idlabel)
+	js, err := json.Marshal(theLabel)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusAccepted)
+	w.Write(js)
 }
 
 func AddUserLabel(w http.ResponseWriter, r *http.Request) {
@@ -58,6 +86,7 @@ func AddUserLabel(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	defer db.Close()
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusAccepted)
 	w.Write(js)
@@ -82,6 +111,7 @@ func GetLabelUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	defer db.Close()
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 	w.Write(js)

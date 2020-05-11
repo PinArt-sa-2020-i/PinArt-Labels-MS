@@ -77,6 +77,13 @@ var routes = Routes{
 	},
 
 	Route{
+		"DeleteUserLabel",
+		strings.ToUpper("Delete"),
+		"/label/user/{id}",
+		DeleteUserLabel,
+	},
+
+	Route{
 		"AddBoardLabel",
 		strings.ToUpper("Put"),
 		"/label/board/{id}",
