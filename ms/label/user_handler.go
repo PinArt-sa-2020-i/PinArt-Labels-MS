@@ -21,7 +21,8 @@ func userExist(uid int64) bool {
 			fmt.Println("user exist")
 		}
 	}
-	db.Close()
+	defer results.Close()
+	defer db.Close()
 	return exist
 }
 
