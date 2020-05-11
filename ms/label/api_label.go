@@ -148,7 +148,9 @@ func UpdateLabel(w http.ResponseWriter, r *http.Request) {
 
 	update, err := db.Prepare("UPDATE Label SET name=?, description=? WHERE idLabel=?")
 	if err != nil {
-		panic(err.Error())
+		log.Printf("Error reading body: %v", err)
+		http.Error(w, "can't read update Label table: "+err.Error(), http.StatusBadRequest)
+		return
 	}
 	update.Exec(theLabel.Name, theLabel.Description, theLabel.Id)
 	updateLabelRelations(theLabel, db, w, r)

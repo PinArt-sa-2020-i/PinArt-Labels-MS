@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 func dbConn() (db *sql.DB) {
@@ -22,6 +23,7 @@ func dbConn() (db *sql.DB) {
 	dbName := "tcp(pinart-labels-db:3306)/labels" //"tcp(127.0.0.1:3306)/labels" // 
 	db, err := sql.Open(dbDriver, dbUser+":"+dbPass+"@"+dbName)
 	if err != nil {
+		fmt.Println("Something Happend when the connection was created")
 		log.Panic(err.Error())
 		panic(err.Error())
 	}
@@ -98,12 +100,17 @@ func GetLabelFromDB(db *sql.DB, id int, w http.ResponseWriter) Label {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return lab
 	}
-	results.Next()
-	err = results.Scan(&lab.Name, &lab.Description)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	if results.Next() {
+		err = results.Scan(&lab.Name, &lab.Description)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return lab
+		}
+	} else {
+		http.Error(w, "There is no label with id "+strconv.Itoa(id)+" in the database", http.StatusInternalServerError)
 		return lab
 	}
+	defer results.Close()
 	// Related Labels
 	results, err = db.Query("SELECT Label_id1 as id from Label_relation where Label_idLabel =? union select Label_idLabel as id from Label_relation where Label_id1 = ?", id, id)
 	if err != nil {

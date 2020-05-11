@@ -30,7 +30,8 @@ func DeleteUserLabel(w http.ResponseWriter, r *http.Request) {
 	}
 	idlabel, err := strconv.ParseInt(keys[0], 10, 64)
 	if err != nil {
-		panic(err)
+		http.Error(w, "there was an error on the labelid param", http.StatusInternalServerError)
+		return
 	}
 
 	deleteUserLabelDB(int64(idUser), idlabel)
